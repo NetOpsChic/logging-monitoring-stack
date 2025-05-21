@@ -1,0 +1,38 @@
+services:
+  node_exporter:
+    image: prom/node-exporter:latest
+    ports:
+      - 9100:9100
+  promtail:
+    image: grafana/promtail:latest
+    volumes:
+     - ./config/promtail.yaml:/etc/promtail/promtail-config.yaml:ro
+     - /var/log:/var/log:ro
+  loki:
+    image: grafana/loki:latest
+    ports: 
+      - 3100:3100
+    volumes:
+       - ./config/loki.yaml:/etc/loki/loki-config.yaml
+  prometheus:
+    image: prom/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+    ports:
+      - 9090:9090
+    restart: unless-stopped
+    volumes:
+    - ./config/prometheus.yaml:/etc/prometheus/prometheus.yml
+  grafana:
+    image: grafana/grafana
+    ports:
+      - 3000:3000
+    restart: unless-stopped
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=grafana
+    volumes:      
+      - ./grafana/provisioning:/etc/grafana/provisioning
+      - ./grafana/dashboards:/var/lib/grafana/dashboards
+volumes:
+  data:
